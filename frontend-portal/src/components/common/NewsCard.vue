@@ -1,26 +1,21 @@
 <template>
-  <div class="news-card" @click="handleClick">
-    <div class="news-card__image">
-      <el-image :src="news.coverImage" fit="cover" lazy>
-        <template #placeholder>
-          <div class="image-placeholder">
-            <el-icon :size="32"><Picture /></el-icon>
-          </div>
-        </template>
-        <template #error>
-          <div class="image-placeholder">
-            <el-icon :size="32"><Picture /></el-icon>
-          </div>
-        </template>
-      </el-image>
+  <!-- 两种形态点击均跳转新闻详情页 -->
+  <div class="news-card" :class="`news-card--${variant}`" @click="handleClick">
+    <div class="news-image">
+      <img :src="news.coverImage" :alt="news.title" />
     </div>
-    <div class="news-card__content">
-      <span class="news-card__category">{{ news.category }}</span>
-      <h3 class="news-card__title">{{ news.title }}</h3>
-      <p class="news-card__summary">{{ news.summary }}</p>
-      <div class="news-card__meta">
-        <span><el-icon><Calendar /></el-icon> {{ formatDate(news.publishTime) }}</span>
-        <span><el-icon><View /></el-icon> {{ news.viewCount }}</span>
+    <div class="news-content">
+      <div class="news-meta">
+        <span class="news-category">{{ news.category }}</span>
+        <span class="news-date">{{ formatDate(news.publishTime) }}</span>
+      </div>
+      <h3>{{ news.title }}</h3>
+      <p>{{ news.summary }}</p>
+      <div v-if="variant === 'list'" class="news-footer">
+        <span class="news-author">{{ news.author }}</span>
+        <span class="news-views">
+          <el-icon><View /></el-icon> {{ news.viewCount }}
+        </span>
       </div>
     </div>
   </div>
@@ -30,9 +25,13 @@
 import { useRouter } from 'vue-router'
 import type { NewsItem } from '@/types'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   news: NewsItem
-}>()
+  /** list：新闻列表页卡片（含作者/浏览量）；home：首页资讯卡片 */
+  variant?: 'list' | 'home'
+}>(), {
+  variant: 'list'
+})
 
 const router = useRouter()
 
@@ -41,101 +40,124 @@ const handleClick = () => {
 }
 
 const formatDate = (dateStr: string) => {
-  const date = new Date(dateStr)
-  return date.toLocaleDateString('zh-CN', {
+  return new Date(dateStr).toLocaleDateString('zh-CN', {
     year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
+    month: 'short',
+    day: 'numeric'
   })
 }
 </script>
 
 <style lang="scss" scoped>
 .news-card {
-  background-color: $bg-color-white;
-  border-radius: $border-radius-md;
+  background: white;
+  border: 1px solid $border-color-light;
+  border-radius: $border-radius-lg;
   overflow: hidden;
-  box-shadow: $shadow-sm;
   cursor: pointer;
   transition: all $transition-normal;
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: $shadow-md;
+    border-color: transparent;
+    box-shadow: $shadow-xl;
 
-    .news-card__title {
+    .news-image img {
+      transform: scale(1.05);
+    }
+
+    h3 {
       color: $primary-color;
     }
   }
 
-  &__image {
-    height: 180px;
+  .news-image {
+    height: 200px;
     overflow: hidden;
 
-    .el-image {
+    img {
       width: 100%;
       height: 100%;
-    }
-
-    .image-placeholder {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: $bg-color;
-      color: $text-color-placeholder;
+      object-fit: cover;
+      transition: transform $transition-slow;
     }
   }
 
-  &__content {
-    padding: $spacing-md;
-  }
+  .news-content {
+    padding: $spacing-lg;
 
-  &__category {
-    display: inline-block;
-    padding: 2px $spacing-sm;
-    font-size: $font-size-xs;
-    color: $primary-color;
-    background-color: rgba($primary-color, 0.1);
-    border-radius: $border-radius-sm;
-    margin-bottom: $spacing-sm;
-  }
-
-  &__title {
-    font-size: $font-size-md;
-    font-weight: 600;
-    color: $text-color-primary;
-    margin-bottom: $spacing-sm;
-    line-height: $line-height-normal;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    transition: color $transition-fast;
-  }
-
-  &__summary {
-    font-size: $font-size-sm;
-    color: $text-color-secondary;
-    line-height: $line-height-loose;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    margin-bottom: $spacing-md;
-  }
-
-  &__meta {
-    display: flex;
-    gap: $spacing-md;
-    font-size: $font-size-xs;
-    color: $text-color-placeholder;
-
-    span {
+    .news-meta {
       display: flex;
       align-items: center;
-      gap: 4px;
+      margin-bottom: $spacing-sm;
+
+      .news-category {
+        font-size: $font-size-xs;
+        font-weight: 600;
+        color: $primary-color;
+        padding: 2px $spacing-sm;
+        background: rgba($primary-color, 0.1);
+        border-radius: $border-radius-sm;
+      }
+
+      .news-date {
+        font-size: $font-size-xs;
+        color: $text-color-secondary;
+      }
+    }
+
+    h3 {
+      font-size: $font-size-lg;
+      line-height: 1.4;
+      margin-bottom: $spacing-sm;
+      transition: color $transition-fast;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    p {
+      font-size: $font-size-sm;
+      color: $text-color-secondary;
+      line-height: $line-height-loose;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  }
+
+  // ==================== 新闻列表页 ====================
+  &--list {
+    .news-meta {
+      justify-content: space-between;
+    }
+
+    p {
+      margin-bottom: $spacing-md;
+    }
+
+    .news-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: $spacing-md;
+      border-top: 1px solid $border-color-light;
+      font-size: $font-size-sm;
+      color: $text-color-secondary;
+
+      .news-views {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+    }
+  }
+
+  // ==================== 首页 ====================
+  &--home {
+    .news-meta {
+      gap: $spacing-md;
     }
   }
 }

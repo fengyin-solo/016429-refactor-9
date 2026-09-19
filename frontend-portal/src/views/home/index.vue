@@ -132,29 +132,13 @@
       </div>
       
       <div class="products-grid">
-        <div 
-          v-for="product in products" 
-          :key="product.id" 
-          class="product-card"
+        <ProductCard
+          v-for="product in products"
+          :key="product.id"
+          :product="product"
+          variant="home"
           @click="router.push('/products')"
-        >
-          <div class="product-image">
-            <img :src="product.image" :alt="product.name" />
-            <div class="product-overlay">
-              <el-button type="primary" round>查看详情</el-button>
-            </div>
-          </div>
-          <div class="product-content">
-            <span class="product-category">{{ product.category }}</span>
-            <h3>{{ product.name }}</h3>
-            <p>{{ product.description }}</p>
-            <div class="product-tags">
-              <el-tag v-for="tag in product.features.slice(0, 3)" :key="tag" size="small" effect="plain">
-                {{ tag }}
-              </el-tag>
-            </div>
-          </div>
-        </div>
+        />
       </div>
     </section>
 
@@ -173,24 +157,12 @@
       </div>
       
       <div class="news-grid">
-        <div 
-          v-for="news in latestNews" 
-          :key="news.id" 
-          class="news-card"
-          @click="router.push(`/news/${news.id}`)"
-        >
-          <div class="news-image">
-            <img :src="news.coverImage" :alt="news.title" />
-          </div>
-          <div class="news-content">
-            <div class="news-meta">
-              <span class="news-category">{{ news.category }}</span>
-              <span class="news-date">{{ formatDate(news.publishTime) }}</span>
-            </div>
-            <h3>{{ news.title }}</h3>
-            <p>{{ news.summary }}</p>
-          </div>
-        </div>
+        <NewsCard
+          v-for="news in latestNews"
+          :key="news.id"
+          :news="news"
+          variant="home"
+        />
       </div>
     </section>
 
@@ -324,14 +296,6 @@ const statsData = ref([
   { value: '98%', label: '客户满意度' },
   { value: '50+', label: '专业团队' }
 ])
-
-const formatDate = (dateStr: string) => {
-  return new Date(dateStr).toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  })
-}
 </script>
 
 <style lang="scss" scoped>
@@ -714,81 +678,6 @@ const formatDate = (dateStr: string) => {
   gap: $spacing-lg;
 }
 
-.product-card {
-  background: white;
-  border-radius: $border-radius-lg;
-  overflow: hidden;
-  cursor: pointer;
-  transition: all $transition-normal;
-  
-  &:hover {
-    box-shadow: $shadow-xl;
-    transform: translateY(-4px);
-    
-    .product-overlay {
-      opacity: 1;
-    }
-    
-    .product-image img {
-      transform: scale(1.05);
-    }
-  }
-  
-  .product-image {
-    position: relative;
-    height: 220px;
-    overflow: hidden;
-    
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform $transition-slow;
-    }
-    
-    .product-overlay {
-      position: absolute;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.4);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      transition: opacity $transition-normal;
-    }
-  }
-  
-  .product-content {
-    padding: $spacing-lg;
-    
-    .product-category {
-      font-size: $font-size-xs;
-      font-weight: 600;
-      color: $primary-color;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    
-    h3 {
-      font-size: $font-size-xl;
-      margin: $spacing-sm 0;
-    }
-    
-    p {
-      font-size: $font-size-sm;
-      color: $text-color-secondary;
-      line-height: $line-height-loose;
-      margin-bottom: $spacing-md;
-    }
-    
-    .product-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: $spacing-xs;
-    }
-  }
-}
-
 // ==================== 新闻动态 ====================
 .news-section {
   padding: $spacing-4xl $spacing-lg;
@@ -817,81 +706,6 @@ const formatDate = (dateStr: string) => {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
   gap: $spacing-lg;
-}
-
-.news-card {
-  background: white;
-  border: 1px solid $border-color-light;
-  border-radius: $border-radius-lg;
-  overflow: hidden;
-  cursor: pointer;
-  transition: all $transition-normal;
-  
-  &:hover {
-    border-color: transparent;
-    box-shadow: $shadow-xl;
-    
-    .news-image img {
-      transform: scale(1.05);
-    }
-    
-    h3 {
-      color: $primary-color;
-    }
-  }
-  
-  .news-image {
-    height: 200px;
-    overflow: hidden;
-    
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform $transition-slow;
-    }
-  }
-  
-  .news-content {
-    padding: $spacing-lg;
-    
-    .news-meta {
-      display: flex;
-      align-items: center;
-      gap: $spacing-md;
-      margin-bottom: $spacing-sm;
-      
-      .news-category {
-        font-size: $font-size-xs;
-        font-weight: 600;
-        color: $primary-color;
-        padding: 2px $spacing-sm;
-        background: rgba($primary-color, 0.1);
-        border-radius: $border-radius-sm;
-      }
-      
-      .news-date {
-        font-size: $font-size-xs;
-        color: $text-color-secondary;
-      }
-    }
-    
-    h3 {
-      font-size: $font-size-lg;
-      margin-bottom: $spacing-sm;
-      transition: color $transition-fast;
-    }
-    
-    p {
-      font-size: $font-size-sm;
-      color: $text-color-secondary;
-      line-height: $line-height-loose;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-  }
 }
 
 // ==================== 数据统计 ====================

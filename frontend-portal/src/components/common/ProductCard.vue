@@ -1,35 +1,42 @@
 <template>
-  <div class="product-card">
-    <div class="product-card__image">
-      <el-image :src="product.image" fit="cover" lazy>
-        <template #placeholder>
-          <div class="image-placeholder">
-            <el-icon :size="40"><Box /></el-icon>
-          </div>
-        </template>
-        <template #error>
-          <div class="image-placeholder">
-            <el-icon :size="40"><Box /></el-icon>
-          </div>
-        </template>
-      </el-image>
+  <!-- 产品列表页：卡片整体不可点，按钮打开详情弹窗 -->
+  <div v-if="variant === 'list'" class="product-card product-card--list">
+    <div class="product-image">
+      <img :src="product.image" :alt="product.name" />
+      <div class="product-badge">{{ product.category }}</div>
     </div>
-    <div class="product-card__content">
-      <h3 class="product-card__name">{{ product.name }}</h3>
-      <p class="product-card__desc">{{ product.description }}</p>
-      <div class="product-card__features">
-        <el-tag 
-          v-for="(feature, index) in product.features.slice(0, 3)" 
-          :key="index"
-          size="small"
-          type="info"
-        >
+    <div class="product-content">
+      <h3>{{ product.name }}</h3>
+      <p>{{ product.description }}</p>
+      <ul class="product-features">
+        <li v-for="feature in product.features" :key="feature">
+          <el-icon><Check /></el-icon>
           {{ feature }}
+        </li>
+      </ul>
+      <el-button type="primary" round @click="emit('detail', product)">
+        了解详情 <el-icon><Right /></el-icon>
+      </el-button>
+    </div>
+  </div>
+
+  <!-- 首页：整张卡片可点，跳转产品页 -->
+  <div v-else class="product-card product-card--home" @click="emit('click', product)">
+    <div class="product-image">
+      <img :src="product.image" :alt="product.name" />
+      <div class="product-overlay">
+        <el-button type="primary" round>查看详情</el-button>
+      </div>
+    </div>
+    <div class="product-content">
+      <span class="product-category">{{ product.category }}</span>
+      <h3>{{ product.name }}</h3>
+      <p>{{ product.description }}</p>
+      <div class="product-tags">
+        <el-tag v-for="tag in product.features.slice(0, 3)" :key="tag" size="small" effect="plain">
+          {{ tag }}
         </el-tag>
       </div>
-      <el-button type="primary" plain size="small" class="product-card__btn">
-        了解更多
-      </el-button>
     </div>
   </div>
 </template>
@@ -37,75 +44,186 @@
 <script setup lang="ts">
 import type { ProductItem } from '@/types'
 
-defineProps<{
+withDefaults(defineProps<{
   product: ProductItem
+  /** list：产品列表页卡片；home：首页产品卡片 */
+  variant?: 'list' | 'home'
+}>(), {
+  variant: 'list'
+})
+
+const emit = defineEmits<{
+  (e: 'detail', product: ProductItem): void
+  (e: 'click', product: ProductItem): void
 }>()
 </script>
 
 <style lang="scss" scoped>
 .product-card {
-  background-color: $bg-color-white;
-  border-radius: $border-radius-md;
+  background: white;
   overflow: hidden;
-  box-shadow: $shadow-sm;
   transition: all $transition-normal;
 
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: $shadow-md;
-  }
-
-  &__image {
-    height: 200px;
-    overflow: hidden;
-
-    .el-image {
-      width: 100%;
-      height: 100%;
-    }
-
-    .image-placeholder {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: $bg-color;
-      color: $text-color-placeholder;
-    }
-  }
-
-  &__content {
-    padding: $spacing-lg;
-  }
-
-  &__name {
-    font-size: $font-size-lg;
-    font-weight: 600;
-    color: $text-color-primary;
-    margin-bottom: $spacing-sm;
-  }
-
-  &__desc {
-    font-size: $font-size-sm;
-    color: $text-color-secondary;
-    line-height: $line-height-loose;
-    margin-bottom: $spacing-md;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  &__features {
+  // ==================== 产品列表页 ====================
+  &--list {
     display: flex;
-    flex-wrap: wrap;
-    gap: $spacing-xs;
-    margin-bottom: $spacing-md;
+    flex-direction: column;
+    border: 1px solid $border-color-light;
+    border-radius: $border-radius-xl;
+
+    &:hover {
+      border-color: transparent;
+      box-shadow: $shadow-2xl;
+      transform: translateY(-8px);
+
+      .product-image img {
+        transform: scale(1.05);
+      }
+    }
+
+    .product-image {
+      position: relative;
+      height: 200px;
+      overflow: hidden;
+      flex-shrink: 0;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform $transition-slow;
+      }
+
+      .product-badge {
+        position: absolute;
+        top: $spacing-md;
+        left: $spacing-md;
+        padding: $spacing-xs $spacing-md;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(10px);
+        color: white;
+        font-size: $font-size-xs;
+        font-weight: 600;
+        border-radius: $border-radius-full;
+      }
+    }
+
+    .product-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: $spacing-xl;
+
+      h3 {
+        font-size: $font-size-xl;
+        margin-bottom: $spacing-sm;
+      }
+
+      > p {
+        font-size: $font-size-sm;
+        color: $text-color-secondary;
+        line-height: $line-height-loose;
+        margin-bottom: $spacing-md;
+        min-height: 42px;
+      }
+
+      .product-features {
+        flex: 1;
+        margin-bottom: $spacing-lg;
+
+        li {
+          display: flex;
+          align-items: center;
+          gap: $spacing-sm;
+          padding: $spacing-xs 0;
+          font-size: $font-size-sm;
+          color: $text-color-regular;
+
+          .el-icon {
+            color: $success-color;
+            font-size: 14px;
+          }
+        }
+      }
+
+      .el-button {
+        width: 100%;
+        margin-top: auto;
+      }
+    }
   }
 
-  &__btn {
-    width: 100%;
+  // ==================== 首页 ====================
+  &--home {
+    border-radius: $border-radius-lg;
+    cursor: pointer;
+
+    &:hover {
+      box-shadow: $shadow-xl;
+      transform: translateY(-4px);
+
+      .product-overlay {
+        opacity: 1;
+      }
+
+      .product-image img {
+        transform: scale(1.05);
+      }
+    }
+
+    .product-image {
+      position: relative;
+      height: 220px;
+      overflow: hidden;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform $transition-slow;
+      }
+
+      .product-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity $transition-normal;
+      }
+    }
+
+    .product-content {
+      padding: $spacing-lg;
+
+      .product-category {
+        font-size: $font-size-xs;
+        font-weight: 600;
+        color: $primary-color;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      h3 {
+        font-size: $font-size-xl;
+        margin: $spacing-sm 0;
+      }
+
+      p {
+        font-size: $font-size-sm;
+        color: $text-color-secondary;
+        line-height: $line-height-loose;
+        margin-bottom: $spacing-md;
+      }
+
+      .product-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: $spacing-xs;
+      }
+    }
   }
 }
 </style>
