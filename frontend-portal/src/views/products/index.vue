@@ -29,29 +29,13 @@
     <section class="products-section">
       <div class="products-container">
         <div class="products-grid">
-          <div 
-            v-for="product in filteredProducts" 
-            :key="product.id" 
-            class="product-card"
-          >
-            <div class="product-image">
-              <img :src="product.image" :alt="product.name" />
-              <div class="product-badge">{{ product.category }}</div>
-            </div>
-            <div class="product-content">
-              <h3>{{ product.name }}</h3>
-              <p>{{ product.description }}</p>
-              <ul class="product-features">
-                <li v-for="feature in product.features" :key="feature">
-                  <el-icon><Check /></el-icon>
-                  {{ feature }}
-                </li>
-              </ul>
-              <el-button type="primary" round @click="showDetail(product)">
-                了解详情 <el-icon><Right /></el-icon>
-              </el-button>
-            </div>
-          </div>
+          <ProductCard
+            v-for="product in filteredProducts"
+            :key="product.id"
+            variant="list"
+            :product="product"
+            @detail="showDetail"
+          />
         </div>
       </div>
     </section>
@@ -361,97 +345,6 @@ const showDetail = (product: ProductItem) => {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: $spacing-xl;
-}
-
-.product-card {
-  display: flex;
-  flex-direction: column;
-  background: white;
-  border: 1px solid $border-color-light;
-  border-radius: $border-radius-xl;
-  overflow: hidden;
-  transition: all $transition-normal;
-  
-  &:hover {
-    border-color: transparent;
-    box-shadow: $shadow-2xl;
-    transform: translateY(-8px);
-    
-    .product-image img {
-      transform: scale(1.05);
-    }
-  }
-  
-  .product-image {
-    position: relative;
-    height: 200px;
-    overflow: hidden;
-    flex-shrink: 0;
-    
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform $transition-slow;
-    }
-    
-    .product-badge {
-      position: absolute;
-      top: $spacing-md;
-      left: $spacing-md;
-      padding: $spacing-xs $spacing-md;
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(10px);
-      color: white;
-      font-size: $font-size-xs;
-      font-weight: 600;
-      border-radius: $border-radius-full;
-    }
-  }
-  
-  .product-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    padding: $spacing-xl;
-    
-    h3 {
-      font-size: $font-size-xl;
-      margin-bottom: $spacing-sm;
-    }
-    
-    > p {
-      font-size: $font-size-sm;
-      color: $text-color-secondary;
-      line-height: $line-height-loose;
-      margin-bottom: $spacing-md;
-      min-height: 42px;
-    }
-    
-    .product-features {
-      flex: 1;
-      margin-bottom: $spacing-lg;
-      
-      li {
-        display: flex;
-        align-items: center;
-        gap: $spacing-sm;
-        padding: $spacing-xs 0;
-        font-size: $font-size-sm;
-        color: $text-color-regular;
-        
-        .el-icon {
-          color: $success-color;
-          font-size: 14px;
-        }
-      }
-    }
-    
-    .el-button {
-      width: 100%;
-      margin-top: auto;
-    }
-  }
 }
 
 // ==================== 服务流程 ====================

@@ -1,38 +1,44 @@
 <template>
-  <div class="news-card" @click="handleClick">
+  <article
+    class="news-card"
+    :class="`news-card--${variant}`"
+    @click="handleClick"
+  >
     <div class="news-card__image">
-      <el-image :src="news.coverImage" fit="cover" lazy>
-        <template #placeholder>
-          <div class="image-placeholder">
-            <el-icon :size="32"><Picture /></el-icon>
-          </div>
-        </template>
-        <template #error>
-          <div class="image-placeholder">
-            <el-icon :size="32"><Picture /></el-icon>
-          </div>
-        </template>
-      </el-image>
+      <img :src="news.coverImage" :alt="news.title" />
     </div>
+
     <div class="news-card__content">
-      <span class="news-card__category">{{ news.category }}</span>
+      <div class="news-card__meta">
+        <span class="news-card__category">{{ news.category }}</span>
+        <span class="news-card__date">{{ formatDate(news.publishTime) }}</span>
+      </div>
+
       <h3 class="news-card__title">{{ news.title }}</h3>
       <p class="news-card__summary">{{ news.summary }}</p>
-      <div class="news-card__meta">
-        <span><el-icon><Calendar /></el-icon> {{ formatDate(news.publishTime) }}</span>
-        <span><el-icon><View /></el-icon> {{ news.viewCount }}</span>
+
+      <!-- 列表形态：作者与阅读量页脚 -->
+      <div v-if="variant === 'list'" class="news-card__footer">
+        <span class="news-card__author">{{ news.author }}</span>
+        <span class="news-card__views">
+          <el-icon><View /></el-icon> {{ news.viewCount }}
+        </span>
       </div>
     </div>
-  </div>
+  </article>
 </template>
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import type { NewsItem } from '@/types'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   news: NewsItem
-}>()
+  /** list: 新闻列表页卡片；overview: 首页等概览位卡片 */
+  variant?: 'list' | 'overview'
+}>(), {
+  variant: 'list'
+})
 
 const router = useRouter()
 
@@ -41,27 +47,30 @@ const handleClick = () => {
 }
 
 const formatDate = (dateStr: string) => {
-  const date = new Date(dateStr)
-  return date.toLocaleDateString('zh-CN', {
+  return new Date(dateStr).toLocaleDateString('zh-CN', {
     year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
+    month: 'short',
+    day: 'numeric'
   })
 }
 </script>
 
 <style lang="scss" scoped>
 .news-card {
-  background-color: $bg-color-white;
-  border-radius: $border-radius-md;
+  background: $bg-color-white;
+  border: 1px solid $border-color-light;
+  border-radius: $border-radius-lg;
   overflow: hidden;
-  box-shadow: $shadow-sm;
   cursor: pointer;
   transition: all $transition-normal;
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: $shadow-md;
+    border-color: transparent;
+    box-shadow: $shadow-xl;
+
+    .news-card__image img {
+      transform: scale(1.05);
+    }
 
     .news-card__title {
       color: $primary-color;
@@ -69,50 +78,50 @@ const formatDate = (dateStr: string) => {
   }
 
   &__image {
-    height: 180px;
+    height: 200px;
     overflow: hidden;
 
-    .el-image {
+    img {
       width: 100%;
       height: 100%;
-    }
-
-    .image-placeholder {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: $bg-color;
-      color: $text-color-placeholder;
+      object-fit: cover;
+      transition: transform $transition-slow;
     }
   }
 
   &__content {
-    padding: $spacing-md;
+    padding: $spacing-lg;
+  }
+
+  &__meta {
+    display: flex;
+    align-items: center;
+    margin-bottom: $spacing-sm;
   }
 
   &__category {
-    display: inline-block;
-    padding: 2px $spacing-sm;
     font-size: $font-size-xs;
+    font-weight: 600;
     color: $primary-color;
-    background-color: rgba($primary-color, 0.1);
+    padding: 2px $spacing-sm;
+    background: rgba($primary-color, 0.1);
     border-radius: $border-radius-sm;
-    margin-bottom: $spacing-sm;
+  }
+
+  &__date {
+    font-size: $font-size-xs;
+    color: $text-color-secondary;
   }
 
   &__title {
-    font-size: $font-size-md;
-    font-weight: 600;
-    color: $text-color-primary;
+    font-size: $font-size-lg;
+    line-height: 1.4;
     margin-bottom: $spacing-sm;
-    line-height: $line-height-normal;
+    transition: color $transition-fast;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    transition: color $transition-fast;
   }
 
   &__summary {
@@ -123,20 +132,40 @@ const formatDate = (dateStr: string) => {
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+  }
+}
+
+// ==================== 列表形态（新闻列表页） ====================
+.news-card--list {
+  .news-card__meta {
+    justify-content: space-between;
+  }
+
+  .news-card__summary {
     margin-bottom: $spacing-md;
   }
 
-  &__meta {
+  .news-card__footer {
     display: flex;
-    gap: $spacing-md;
-    font-size: $font-size-xs;
-    color: $text-color-placeholder;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: $spacing-md;
+    border-top: 1px solid $border-color-light;
+    font-size: $font-size-sm;
+    color: $text-color-secondary;
+  }
 
-    span {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
+  .news-card__views {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+}
+
+// ==================== 概览形态（首页等） ====================
+.news-card--overview {
+  .news-card__meta {
+    gap: $spacing-md;
   }
 }
 </style>
